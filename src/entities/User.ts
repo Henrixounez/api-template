@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Column, CreateDateColumn, Entity, EntitySubscriberInterface, EventSubscriber, InsertEvent, PrimaryGeneratedColumn, UpdateDateColumn, UpdateEvent } from "typeorm";
+import { Column, CreateDateColumn, Entity, EntitySubscriberInterface, EventSubscriber, InsertEvent, JoinTable, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn, UpdateEvent } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import * as jwt from "jsonwebtoken";
 import * as config from "../config.json";
@@ -18,9 +18,12 @@ export class User {
   @Column()
   lastname: string;
 
-  @Column({ select: false })
+  @Column()
   password: string;
 
+  @ManyToMany(() => User, relation => relation.friends)
+  @JoinTable()
+  friends: Array<User>;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -65,6 +68,7 @@ export interface UserReturn {
   email: string;
   firstname: string;
   lastname: string;
+  friends: Array<UserReturn>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -75,6 +79,7 @@ export function formatUserReturn(user: User): UserReturn {
     email: user.email,
     firstname: user.firstname,
     lastname: user.lastname,
+    friends: user.friends?.map(formatUserReturn),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   }

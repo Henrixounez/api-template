@@ -1,6 +1,6 @@
 import { checkLogin } from '../auth';
 import { RoutesType, Method, RoutesTypeWS } from '../types';
-import { login, register, get, update, del } from './controller';
+import { login, register, get, update, del, addFriend } from './controller';
 
 const crud: RoutesType[] = [
   {
@@ -17,6 +17,14 @@ const crud: RoutesType[] = [
     method: Method.GET,
     route: "/user/",
     controller: get,
+    middlewares: [
+      checkLogin(),
+    ]
+  },
+  {
+    method: Method.PUT,
+    route: "/user/addFriend",
+    controller: addFriend,
     middlewares: [
       checkLogin(),
     ]

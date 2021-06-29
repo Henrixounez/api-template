@@ -75,7 +75,7 @@ export async function get(req: Request, res: Response<UserReturn | string>): Pro
   const userRepository = getRepository(User);
   const userId = res.locals.user.id;
 
-  const user = await userRepository.findOne(userId);
+  const user = await userRepository.findOne({ where: { id: userId }, relations: [ 'friends', 'friends.friends' ] });
   if (!user)
     return res.status(StatusCodes.NOT_FOUND).send('User not found');
   return res.status(StatusCodes.OK).json(formatUserReturn(user));
@@ -98,6 +98,32 @@ export async function update(req: Request, res: Response<UserReturn | string>): 
   user.lastname = lastname !== undefined ? lastname : user.lastname,
   await userRepository.save(user);
 
+  return res.status(StatusCodes.OK).json(formatUserReturn(user));
+}
+
+// PUT
+// Add Friend
+export async function addFriend(req: Request, res: Response<UserReturn | string>): Promise<Response<UserReturn | string>> {
+  const userRepository = getRepository(User);
+  const { friendId } = req.body;
+  const userId = res.locals.user.id;
+
+  const user = await userRepository.findOne(userId);
+  if (!user)
+    return res.status(StatusCodes.NOT_FOUND).send('User not found');
+  const friend = await userRepository.findOne(friendId);
+  if (!friend)
+    return res.status(StatusCodes.NOT_FOUND).send('User not found');
+  
+  if (user.friends)
+    user.friends.push(friend);
+  else
+    user.friends = [friend];
+  if (friend.friends)
+    friend.friends.push(user)
+  else
+    friend.friends = [user];
+  await userRepository.save(user);
   return res.status(StatusCodes.OK).json(formatUserReturn(user));
 }
 
